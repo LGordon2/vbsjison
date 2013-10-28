@@ -28,7 +28,10 @@ X	[Xx];
 Y	[Yy];
 Z	[Zz];
 
+%options flex
+
 %%
+
 \s+				/* skip whitespace */
 \'.*				/* ignore comments */
 REM.*				//
@@ -63,6 +66,7 @@ Explicit			return 'EXPLICIT';
 "/"				return '/';
 "+"				return '+';
 "-"				return '-';
+"."				return '.';
 <<EOF>>				return 'EOF';
 .				return 'INVALID';
 
@@ -73,102 +77,101 @@ Explicit			return 'EXPLICIT';
 %%
 
 primary_expression
-	: IDENITIFIER
+	: IDENTIFIER
 	| NUMBER
 	| STR_CONST
 	| '(' expression ')'
 	;
 
 script
-	: expr_list EOF
+	: statement_list EOF
 	;
-
-expr_list
-	: expr
-	| expr_list expr
-	;
-
-assignment
-	: IDENTIFIER '=' add_expr
-	;
-
-add_expr 
-	: term | add_expr add_op term;
-
-term
-	: factor | term mult_op factor;
-
-factor
-	: IDENTIFIER
-	| NUMBER
-	| function_call
-	;
-
-add_op
-	: '+' | '-';
-
-mult_op 
-	: '*' | '/';
-
-arg_list
-	: obj
-	| arg_list ',' obj
-	;
-
-function_call
-	: IDENTIFIER '(' arg_list ')'
-	;
-
-function_def
-	: FUNCTION IDENTIFIER '(' arg_list ')' expr_list END FUNCTION
-	;
-
-obj
-	: STR_CONST
-	| add_expr
-	; 
-
-constant
-	: NUMBER
-	| STR_CONST
-	;
-
-comp_op
-	: LE_OP | NE_OP | GE_OP | '<' | '>' | '=';
-
-condition_list
-	: condition
-	| condition_list AND condition
-	| condition_list OR condition
-	;
-
-condition
-	: IDENTIFIER comp_op constant
-	;
-
 
 else_if_clause
-	: ELSEIF condition_list THEN expr_list
-	| ELSEIF condition_list THEN expr_list else_if_clause
+	: ELSEIF expression THEN statement 
+	| ELSEIF expression THEN statement else_if_clause
 	;
 
-if_statement
-	: IF condition_list THEN expr_list END IF
-	| IF condition_list THEN expr_list ELSE expr_list END IF
-	| IF condition_list THEN expr_list else_if_clause END IF
-	| IF condition_list THEN expr_list else_if_clause ELSE expr_list END IF
+selection_statement
+	: IF expression THEN statement END IF
+	| IF expression THEN statement ELSE statement END IF
+	| IF expression THEN statement else_if_clause END IF
+	| IF expression THEN statement else_if_clause ELSE statement END IF
 	;
 
 for_statement
 	: FOR IDENTIFIER '=' NUMBER TO factor expr_list NEXT
 	;
 
-expr
+statement_list
+	: statement
+	| statement_list statement
+	;
+
+declaration_statement
 	: DIM IDENTIFIER
-	| OPTION EXPLICIT
-	| CALL function_call
-	| if_statement
-	| for_statement
-	| function_def
-	| assignment
+	;
+
+expression
+	: assignment_expression
+	;
+
+assignment_expression
+	: logical_or_expression
+	| unary_expression '=' assignment_expression
+	;
+
+logical_or_expression
+	: logical_and_expression
+	| logical_or_expression OR logical_and_expression
+	;
+
+logical_and_expression
+	: equality_expression
+	| logical_and_expression AND equality_expression
+	;
+
+equality_expression
+	: relational_expression
+	| equality_expression '=' relational_expression
+	| equality_expression NE_OP relational_expression
+	;
+
+relational_expression
+	: additive_expression
+	| relational_expression '<' additive_expression
+	| relational_expression '>' additive_expression
+	| relational_expression LE_OP additive_expression
+	| relational_expression GE_OP additive_expression
+	;
+
+cast_expression
+	: unary_expression
+	;
+
+multiplicative_expression
+	: cast_expression
+	| multiplicative_expression '*' cast_expression
+	| multiplicative_expression '/' cast_expression
+	| multiplicative_expression '%' cast_expression
+	;
+
+additive_expression
+	: multiplicative_expression
+	| additive_expression '+' multiplicative_expression
+	| additive_expression '-' multiplicative_expression
+	;
+
+unary_expression
+	: postfix_expression
+	;
+
+postfix_expression
+	: primary_expression
+	;
+
+statement
+	: declaration_statement
+	| expression
+	| selection_statement
 	;

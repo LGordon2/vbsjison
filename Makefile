@@ -1,5 +1,5 @@
 test: vbs.js
-	node vbs.js example2.vb
+	node vbs.js sample.vb
 
 vbs.js: vbs.jison
 	jison vbs.jison
