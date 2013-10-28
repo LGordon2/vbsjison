@@ -50,6 +50,8 @@ Explicit			return 'EXPLICIT';
 {E}{N}{D}			return 'END';
 {O}{R}				return 'OR';
 {A}{N}{D}			return 'AND';
+{S}{E}{L}{E}{C}{T}		return 'SELECT';
+{C}{A}{S}{E}			return 'CASE';
 [A-Za-z][A-Za-z0-9_]*		return 'IDENTIFIER';
 [0-9]+				return 'NUMBER';
 \"(\\.|[^\\"])*\"		return 'STR_CONST';
@@ -88,15 +90,24 @@ script
 	;
 
 else_if_clause
-	: ELSEIF expression THEN statement 
-	| ELSEIF expression THEN statement else_if_clause
+	: else_clause
+	| ELSEIF expression THEN statement_list else_if_clause
+	;
+
+else_clause
+	: ELSE statement_list
+	;
+
+case_list
+	: CASE expression statement_list
+	| case_list CASE expression statement_list
+	| case_list CASE ELSE statement_list
 	;
 
 selection_statement
-	: IF expression THEN statement END IF
-	| IF expression THEN statement ELSE statement END IF
-	| IF expression THEN statement else_if_clause END IF
-	| IF expression THEN statement else_if_clause ELSE statement END IF
+	: IF expression THEN statement_list END IF
+	| IF expression THEN statement_list else_if_clause END IF
+	| SELECT CASE expression case_list END SELECT
 	;
 
 for_statement
