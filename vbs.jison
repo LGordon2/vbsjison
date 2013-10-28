@@ -52,6 +52,15 @@ Explicit			return 'EXPLICIT';
 {A}{N}{D}			return 'AND';
 {S}{E}{L}{E}{C}{T}		return 'SELECT';
 {C}{A}{S}{E}			return 'CASE';
+{U}{N}{T}{I}{L}			return 'UNTIL';
+{D}{O}				return 'DO';
+{E}{X}{I}{T}			return 'EXIT';
+{S}{U}{B}			return 'SUB';
+{L}{O}{O}{P}			return 'LOOP';
+{W}{H}{I}{L}{E}			return 'WHILE';
+{W}{E}{N}{D}			return 'WEND';
+True				return 'TRUE';
+False				return 'FALSE';
 [A-Za-z][A-Za-z0-9_]*		return 'IDENTIFIER';
 [0-9]+				return 'NUMBER';
 \"(\\.|[^\\"])*\"		return 'STR_CONST';
@@ -68,6 +77,7 @@ Explicit			return 'EXPLICIT';
 "/"				return '/';
 "+"				return '+';
 "-"				return '-';
+"&"				return '&';
 "."				return '.';
 <<EOF>>				return 'EOF';
 .				return 'INVALID';
@@ -83,6 +93,8 @@ primary_expression
 	| NUMBER
 	| STR_CONST
 	| '(' expression ')'
+	| TRUE
+	| FALSE
 	;
 
 script
@@ -91,6 +103,7 @@ script
 
 else_if_clause
 	: else_clause
+	| ELSEIF expression THEN statement_list
 	| ELSEIF expression THEN statement_list else_if_clause
 	;
 
@@ -110,16 +123,12 @@ selection_statement
 	| SELECT CASE expression case_list END SELECT
 	;
 
-for_statement
-	: FOR IDENTIFIER '=' NUMBER TO factor expr_list NEXT
-	;
-
 statement_list
 	: statement
 	| statement_list statement
 	;
 
-declaration_statement
+dim_statement
 	: DIM IDENTIFIER
 	;
 
@@ -171,6 +180,7 @@ additive_expression
 	: multiplicative_expression
 	| additive_expression '+' multiplicative_expression
 	| additive_expression '-' multiplicative_expression
+	| additive_expression '&' multiplicative_expression
 	;
 
 unary_expression
@@ -179,10 +189,49 @@ unary_expression
 
 postfix_expression
 	: primary_expression
+	| postfix_expression '(' ')'
+	| postfix_expression '(' argument_expression_list ')'
+	| postfix_expression argument_expression_list
+	| postfix_expression '.' IDENTIFIER
+	;
+
+argument_expression_list
+	: assignment_expression
+	| argument_expression_list ',' assignment_expression
+	;
+
+do_statement
+	: DO WHILE expression LOOP
+	| DO WHILE expression statement_list LOOP
+	| DO UNTIL expression statement_list LOOP 
+	| DO UNTIL expression LOOP
+	| DO LOOP
+	| DO statement_list LOOP WHILE expression
+	| DO statement_list LOOP UNTIL expression
+	;
+
+iteration_statement
+	: FOR expression TO expression statement_list NEXT
+	| WHILE expression statement_list WEND
+	| WHILE expression WEND
+	| do_statement
+	;
+
+jump_statement
+	: EXIT DO
+	| EXIT FUNCTION
+	| EXIT FOR
+	;
+
+expression_statement
+	: expression
 	;
 
 statement
-	: declaration_statement
-	| expression
+	: dim_statement
+	| expression_statement
 	| selection_statement
+	| iteration_statement
+	| jump_statement
+	| OPTION EXPLICIT
 	;
