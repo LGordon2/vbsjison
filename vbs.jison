@@ -131,7 +131,7 @@ statement_list
 	;
 
 dim_statement
-	: DIM IDENTIFIER
+	: DIM argument_expression_list
 	;
 
 expression
