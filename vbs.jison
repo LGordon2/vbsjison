@@ -32,13 +32,13 @@ Z	[Zz];
 
 %%
 
-\s+				/* skip whitespace */
+[ \t\b\r]+				/* skip whitespace */
 \'.*				/* ignore comments */
 REM.*				//
+\n				return 'NEWLINE';
 Dim				return 'DIM';
 Option				return 'OPTION';
 Explicit			return 'EXPLICIT';
-{C}{A}{L}{L}			return 'CALL';
 {F}{O}{R}			return 'FOR';
 {N}{E}{X}{T}			return 'NEXT';
 {T}{O}				return 'TO';
@@ -59,6 +59,8 @@ Explicit			return 'EXPLICIT';
 {L}{O}{O}{P}			return 'LOOP';
 {W}{H}{I}{L}{E}			return 'WHILE';
 {W}{E}{N}{D}			return 'WEND';
+{P}{U}{B}{L}{I}{C}		return 'PUBLIC';
+{P}{R}{I}{V}{A}{T}{E}		return 'PRIVATE';
 True				return 'TRUE';
 False				return 'FALSE';
 [A-Za-z][A-Za-z0-9_]*		return 'IDENTIFIER';
@@ -125,7 +127,7 @@ selection_statement
 
 statement_list
 	: statement
-	| statement_list statement
+	| statement_list statement 
 	;
 
 dim_statement
@@ -227,11 +229,24 @@ expression_statement
 	: expression
 	;
 
+access_modifier
+	: PUBLIC
+	| PRIVATE
+	;
+
+function_definition
+	: FUNCTION IDENTIFIER '(' argument_expression_list ')' statement_list END FUNCTION
+	| SUB IDENTIFIER '(' argument_expression_list ')' statement_list END SUB
+	| access_modifier function_definition
+	;
+
 statement
 	: dim_statement
 	| expression_statement
 	| selection_statement
 	| iteration_statement
 	| jump_statement
+	| function_definition
 	| OPTION EXPLICIT
+	| NEWLINE
 	;
