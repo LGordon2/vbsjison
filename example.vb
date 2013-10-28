@@ -9,7 +9,7 @@ Option Explicit
 '********************************************************
 
 'This function returns the factorial and accepts the given integer
-'Function UserName(factorial)
+Function UserName(factorial)
 
 	'if the number given was below 1 it is invalid
 	If factorial < 1 Then
@@ -24,7 +24,7 @@ Option Explicit
 		UserName = factorial * UserName(factorial-1)
 	End If
 
-'End Function
+End Function
 
 '********************************************************
 'End File
